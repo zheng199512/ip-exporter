@@ -22,10 +22,10 @@ var (
 )
 
 type context struct {
-	current   *protocol.Protocol
+	current   *protocol.IPPool
 	line      string
 	handled   bool
-	protocols []*protocol.Protocol
+	protocols []*protocol.IPPool
 	ipVersion string
 }
 
@@ -37,12 +37,12 @@ func init() {
 	channelRegex = regexp.MustCompile(`Channel ipv(4|6)`)
 }
 
-// ParseProtocols parses bird output and returns protocol.Protocol structs
-func ParseProtocols(data []byte, ipVersion string) []*protocol.Protocol {
+// ParseProtocols parses bird output and returns protocol.IPPool structs
+func ParseProtocols(data []byte, ipVersion string) []*protocol.IPPool {
 	reader := bytes.NewReader(data)
 	scanner := bufio.NewScanner(reader)
 
-	c := &context{protocols: make([]*protocol.Protocol, 0), ipVersion: ipVersion}
+	c := &context{protocols: make([]*protocol.IPPool, 0), ipVersion: ipVersion}
 
 	var handlers = []func(*context){
 		handleEmptyLine,
@@ -183,7 +183,7 @@ func parseLineForChannel(c *context) {
 	if len(c.current.IpVersion) == 0 {
 		c.current.IpVersion = channel[1]
 	} else {
-		c.current = &protocol.Protocol{
+		c.current = &protocol.IPPool{
 			Name:      c.current.Name,
 			Proto:     c.current.Proto,
 			Up:        c.current.Up,
@@ -240,7 +240,7 @@ func parseLineForRouteChanges(c *context) {
 	c.handled = true
 }
 
-func getRouteChangeCount(values []string, p *protocol.Protocol) *protocol.RouteChangeCount {
+func getRouteChangeCount(values []string, p *protocol.IPPool) *protocol.RouteChangeCount {
 	if values[1] == "Import" {
 		if values[2] == "updates" {
 			return &p.ImportUpdates
@@ -275,7 +275,7 @@ func parseInt(value string) int64 {
 	return i
 }
 
-func fillAttributes(p *protocol.Protocol, m []string) {
+func fillAttributes(p *protocol.IPPool, m []string) {
 	if p.Proto == protocol.OSPF {
 		p.Attributes["running"] = float64(parseOspfRunning(m[6]))
 	}

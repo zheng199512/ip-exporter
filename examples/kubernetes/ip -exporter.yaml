@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    k8s-app: ip-exporter
+  name: ip-exporter
+  namespace: kube-system
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: ip-exporter
+  template:
+    metadata:
+      labels:
+        k8s-app: ip-exporter
+    spec:
+      containers:
+        - env:
+            - name: ETCD_ENDPOINTS
+              valueFrom:
+                configMapKeyRef:
+                  key: etcd_endpoints
+                  name: calico-config
+            - name: ETCD_CA_CERT_FILE
+              valueFrom:
+                configMapKeyRef:
+                  key: etcd_ca
+                  name: calico-config
+            - name: ETCD_KEY_FILE
+              valueFrom:
+                configMapKeyRef:
+                  key: etcd_key
+                  name: calico-config
+            - name: ETCD_CERT_FILE
+              valueFrom:
+                configMapKeyRef:
+                  key: etcd_cert
+                  name: calico-config
+          image: 10.10.101.175/k8s-deploy/ip-exporter:1.0
+          imagePullPolicy: IfNotPresent
+          name: ip-exporter
+          resources:
+            limits:
+              cpu: 100m
+              memory: 128Mi
+          ports:
+            - containerPort: 9324
+              name: metrics
+          terminationMessagePath: /dev/termination-log
+          terminationMessagePolicy: File
+          volumeMounts:
+            - mountPath: /calico-secrets
+              name: etcd-certs
+      dnsPolicy: ClusterFirst
+      hostNetwork: false
+      restartPolicy: Always
+      tolerations:
+        - effect: NoExecute
+          key: node.kubernetes.io/not-ready
+          operator: Exists
+          tolerationSeconds: 300
+        - effect: NoExecute
+          key: node.kubernetes.io/unreachable
+          operator: Exists
+          tolerationSeconds: 300
+      volumes:
+        - name: etcd-certs
+          secret:
+            defaultMode: 420
+            secretName: calico-etcd-secrets
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: ip-exporter
+  namespace: kube-system
+  labels:
+    k8s-app: ip-exporter
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9324
+      targetPort: 9324
+      protocol: TCP
+  selector:
+    k8s-app: ip-exporter          #

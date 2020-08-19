@@ -9,7 +9,7 @@ const (
 	Direct        = 16
 )
 
-type Protocol struct {
+type IPPool struct {
 	Name            string
 	IpVersion       string
 	Proto           int
@@ -34,6 +34,6 @@ type RouteChangeCount struct {
 	Accepted int64
 }
 
-func NewProtocol(name string, proto int, ipVersion string, uptime int) *Protocol {
-	return &Protocol{Name: name, Proto: proto, IpVersion: ipVersion, Uptime: uptime, Attributes: make(map[string]float64)}
+func NewProtocol(name string, proto int, ipVersion string, uptime int) *IPPool {
+	return &IPPool{Name: name, Proto: proto, IpVersion: ipVersion, Uptime: uptime, Attributes: make(map[string]float64)}
 }
