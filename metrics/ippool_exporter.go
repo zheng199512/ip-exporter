@@ -4,7 +4,6 @@ import (
 	"github.com/czerwonk/bird_exporter/calico"
 	"github.com/czerwonk/bird_exporter/protocol"
 	"github.com/prometheus/client_golang/prometheus"
-	"strings"
 )
 
 type IPPoolExporter struct {
@@ -27,8 +26,8 @@ func (m *IPPoolExporter) Export(p *protocol.IPPool, ch chan<- prometheus.Metric)
 	for _, ipp := range m.IPPResultList {
 		labels := m.labelStrategy.LabelNames()
 
-		ippTotal := prometheus.NewDesc(strings.Replace(ipp.Name, "-", "_", -1)+"_total", "total of ippol", labels, nil)
-		ippInuse := prometheus.NewDesc(strings.Replace(ipp.Name, "-", "_", -1)+"_inuse", "inuse of ippol", labels, nil)
+		ippTotal := prometheus.NewDesc("calico_ippool"+"_total", "total of ippol", labels, nil)
+		ippInuse := prometheus.NewDesc("calico_ippool"+"_inuse", "inuse of ippol", labels, nil)
 		l := m.labelStrategy.LabelValues(&ipp)
 		ch <- prometheus.MustNewConstMetric(ippTotal, prometheus.GaugeValue, ipp.Total, l...)
 		ch <- prometheus.MustNewConstMetric(ippInuse, prometheus.GaugeValue, ipp.Inuse, l...)
